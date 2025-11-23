@@ -6,6 +6,18 @@ typedef struct {
     long int ID;
 } user;
 
+typedef struct {
+    char *admin;
+} adminkey;
+
+adminkey keys[] = {
+    {"RejuanaIslam115"},
+    {"RajeshPalitRJP115"},
+    {"meowLord67"}
+};
+
+int num1 = sizeof(keys) / sizeof(keys[0]);
+
 user users[] = {
     {"AbiraSorowar", 2513491630},
     {"MstNurAAfsanur", 2532692642},
@@ -44,9 +56,15 @@ user users[] = {
 
 int num = sizeof(users) / sizeof(users[0]);
 
-int loginUser(user users[], int num, char *input_name) {
+int loginUser(user users[], int num, char *input_name, adminkey keys[], int num1) {
     char end[10] = "exit";
 
+    for(int i = 0; i < num1; i++){
+        if(strcmp(keys[i].admin, input_name) == 0){
+            return 3;
+        }
+    }
+    
     if (strcmp(end, input_name) == 0) {
         return 2;
     }
@@ -82,7 +100,7 @@ int main() {
             printf("enter username: ");
             scanf("%99s", name);
 
-            logUser = loginUser(users, num, name);
+            logUser = loginUser(users, num, name, keys, num1);
 
             if (logUser == 0) {
                 printf("invalid username\n\n");
@@ -90,6 +108,7 @@ int main() {
 
             int count = 0;
 
+            
             if (logUser == 1) {
                 while (logID == 0) {
                     printf("enter ID: ");
@@ -111,6 +130,7 @@ int main() {
 
                 if (logID == 1) {
                     run = 1;
+                    printf("Login successful!!\n\n");
                 }
             }
 
@@ -118,9 +138,14 @@ int main() {
                 pRun = 0;
                 break;
             }
+
+            if (logUser == 3){
+                printf("admin perms granted \n\n");
+                run = 2;
+            }
         }
 
-        while (run) {
+        while (run == 1) {
             int nav = 0;
             printf("\nMain Menu:\n");
             printf("1. Student Resources\n");
