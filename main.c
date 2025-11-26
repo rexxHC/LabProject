@@ -145,7 +145,7 @@ int main() {
                 break;
             }
 
-            // Handle successful Admin Login (FIX 1: Go straight to admin menu)
+            // Handle successful Admin Login 
             if (logUser == 3){
                 printf("admin perms granted \n\n");
                 programMenu = 2; // Admin Menu
