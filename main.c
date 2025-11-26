@@ -11,7 +11,7 @@ typedef struct {
     char *admin;
 } Admin;
 
-Admin keys[] = {
+Admin keys[] = { // implement the djb2 hash for this
     {"RejuanaIslam115"},
     {"RajeshPalitRJP115"},
     {"meowLord67"}
@@ -19,7 +19,7 @@ Admin keys[] = {
 
 int adminSize = sizeof(keys) / sizeof(keys[0]);
 
-user users[] = {
+user users[] = { // djb2 hash for the usernames and uint32 or uint64 for ID hashing
     {"AbiraSorowar", 2513491630},
     {"MstNurAAfsanur", 2532692642},
     {"AnilBanik", 2534231642},
