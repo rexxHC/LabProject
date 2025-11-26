@@ -1,3 +1,4 @@
+#include <arm/types.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -8,15 +9,15 @@ typedef struct {
 
 typedef struct {
     char *admin;
-} adminkey;
+} Admin;
 
-adminkey keys[] = {
+Admin keys[] = {
     {"RejuanaIslam115"},
     {"RajeshPalitRJP115"},
     {"meowLord67"}
-};
+}; //load this from a file figure ts out
 
-int num1 = sizeof(keys) / sizeof(keys[0]);
+int adminSize = sizeof(keys) / sizeof(keys[0]);
 
 user users[] = {
     {"AbiraSorowar", 2513491630},
@@ -54,12 +55,12 @@ user users[] = {
     {"TarannumBinteMatiur", 2311647643}
 };
 
-int num = sizeof(users) / sizeof(users[0]);
+int userSize = sizeof(users) / sizeof(users[0]);
 
-int loginUser(user users[], int num, char *input_name, adminkey keys[], int num1) {
+int loginUser(user users[], int userSize, char *input_name, Admin keys[], int adminSize) {
     char end[10] = "exit";
 
-    for(int i = 0; i < num1; i++){
+    for(int i = 0; i < adminSize; i++){
         if(strcmp(keys[i].admin, input_name) == 0){
             return 3;
         }
@@ -69,7 +70,7 @@ int loginUser(user users[], int num, char *input_name, adminkey keys[], int num1
         return 2;
     }
 
-    for (int i = 0; i < num; i++) {
+    for (int i = 0; i < userSize; i++) {
         if (strcmp(users[i].username, input_name) == 0) {
             return 1;
         }
@@ -77,8 +78,8 @@ int loginUser(user users[], int num, char *input_name, adminkey keys[], int num1
     return 0;
 }
 
-int loginID(user users[], int num, long int input_id) {
-    for (int i = 0; i < num; i++) {
+int loginID(user users[], int userSize, long int input_id) {
+    for (int i = 0; i < userSize; i++) {
         if (users[i].ID == input_id) {
             return 1;
         }
@@ -89,10 +90,10 @@ int loginID(user users[], int num, long int input_id) {
 int main() {
     char name[100];
     long int id;
-    int pRun = 1;
-    int run = 0;
+    int loginMenu = 1;
+    int programMenu = 0;
 
-    while (pRun == 1) {
+    while (loginMenu == 1) {
         int logUser = 0;
         int logID = 0;
 
@@ -100,13 +101,13 @@ int main() {
             printf("enter username: ");
             scanf("%99s", name);
 
-            logUser = loginUser(users, num, name, keys, num1);
+            logUser = loginUser(users, userSize, name, keys, adminSize);
 
             if (logUser == 0) {
                 printf("invalid username\n\n");
             }
 
-            int count = 0;
+            int try = 0;
 
             
             if (logUser == 1) {
@@ -114,38 +115,38 @@ int main() {
                     printf("enter ID: ");
                     scanf("%ld", &id);
 
-                    logID = loginID(users, num, id);
+                    logID = loginID(users, userSize, id);
 
                     if (logID == 0) {
                         printf("invalid ID\n\n");
-                        count++;
+                        try++;
                     }
 
-                    if (count > 3) {
+                    if (try > 3) {
                         printf("too many tries \n");
-                        pRun = 0;
+                        loginMenu = 0;
                         break;
                     }
                 }
 
                 if (logID == 1) {
-                    run = 1;
+                    programMenu = 1;
                     printf("Login successful!!\n\n");
                 }
             }
 
             if (logUser == 2) {
-                pRun = 0;
+                loginMenu = 0;
                 break;
             }
 
             if (logUser == 3){
                 printf("admin perms granted \n\n");
-                run = 2;
+                programMenu = 2;
             }
         }
 
-        while (run == 1) {
+        while (programMenu == 1) {
             int nav = 0;
             printf("\nMain Menu:\n");
             printf("1. Student Resources\n");
@@ -239,7 +240,7 @@ int main() {
                 
                 case 4:
                     printf("Logging out.\n\n");
-                    run = 0;
+                    programMenu = 0;
                     break;
                     
                 default:
