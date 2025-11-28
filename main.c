@@ -512,7 +512,7 @@ void viewattendance()
 
 
 }
-
+//
 
 void attendance()
 {
