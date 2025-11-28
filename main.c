@@ -97,7 +97,7 @@ int loginID(user users[], int userSize, unsigned long long input_id) {
 
 void grade();
 
-typedef struct {        // only for grade
+typedef struct {        // only for grade + attendance
     unsigned long long ID; 
     float grade;           
     int attendance;        
@@ -112,7 +112,7 @@ void save_gradeFile(void);
 void searchgrade(void);
 void viewgrade(void);
 void inputgrade(void);
-void grade();
+
 
 void load_gradeFile() {
 
@@ -157,52 +157,58 @@ void save_gradeFile() {
 
 void inputgrade() {
 
-
     unsigned long long id;
     float grade;
-    int found = 0;
-    int n;
+    int n = 1;
 
-    while(n !=0 ){
-        
-        printf("Enter 0 to exit");
-        if(n==0)
-        {  
-            grade();
+    while(1){
+
+        int found = 0;
+
+        printf("Enter 0 to return or any numeric key to continue\n");
+        printf("Choice: ");
+        scanf("%d", &n);
+
+        if (n == 0) {
+            return;
         }
 
+        printf("Enter student ID: ");
+        scanf("%llu", &id);
 
-    printf("Enter student ID: ");
-    scanf("%llu", &id);
+      
+        for (int i = 0; i < recordCount; i++) {
+            if (records[i].ID == id) {
+              
+                printf("Enter grade: ");
+                scanf("%f", &grade);
 
-    for (int i = 0; i < recordCount; i++) {
 
-        if (records[i].ID == id) {
-            
+                records[i].grade = grade;
+                found = 1;
+                break;
+            }
+        }
+
+       
+        if (!found) {
             printf("Enter grade: ");
             scanf("%f", &grade);
-
-            records[i].grade = grade;
-            found = 1;
-            break;
+            records[recordCount].ID = id;
+            records[recordCount].grade = grade;
+            
+            recordCount++;
         }
-    
-    }
 
-    if (!found) {
-        printf("Enter grade: ");
-        scanf("%f", &grade);
-        records[recordCount].ID = id;
-        records[recordCount].grade = grade;
-        records[recordCount].attendance = 0;
-        recordCount++;
+        
+        save_gradeFile(); 
     }
-}
-    save_gradeFile();
 }
 
 
 void viewgrade() {
+
+
 
     if (recordCount == 0) {
         printf("No grades found yet.\n");
@@ -230,59 +236,75 @@ void viewgrade() {
         
         if (grade >= 90) letter = 'A';
         else if (grade >= 85) letter = 'B'; 
-        else if (grade >= 80) letter = 'B';
-        else if (grade >= 75) letter = 'C';
-        else if (grade >= 70) letter = 'D';
+        else if (grade >= 80) letter = 'C';
+        else if (grade >= 75) letter = 'D';
+        else if (grade >= 70) letter = 'E';
         else letter = 'F';
 
-        printf("%s %llu %f %c\n", name, id, records[i].grade, letter);
+        printf("%s %llu %.2f %c\n", name, id, records[i].grade, letter);
     }
+
+    
 }
 
 
 void searchgrade() {
+
+    int n = 1;
 
     if (recordCount == 0) {
         printf("No grade records available.\n");
         return;
     }
 
-    unsigned long long inputID;
-    printf("Enter student ID: ");
-    scanf("%llu", &inputID);
+    while (1) {
 
-    int found = 0;
+        int found = 0;
 
-    for (int i = 0; i < recordCount; i++) {
-        if (records[i].ID == inputID) {
-            found = 1;
+        printf("Enter 0 to return or any numeric key to continue\n");
+        printf("Choice: ");
+        scanf("%d", &n);
 
-            char *name = "no idea";
-            for (int j = 0; j < userSize; j++) {
-                if (users[j].ID == inputID) {
-                    name = users[j].username;
-                    break;
-                }
-            }
-
-            float grade = records[i].grade;
-            char letter;
-
-            
-            if (grade >= 90) letter = 'A';
-            else if (grade >= 85) letter = 'A';
-            else if (grade >= 80) letter = 'B';
-            else if (grade >= 75) letter = 'C';
-            else if (grade >= 70) letter = 'D';
-            else letter = 'F';
-
-            printf("\nStudent: %s\nID: %llu\nGrade: %.2f\nLetter: %c\n", name, inputID, grade, letter);
-            break;
+        if (n == 0) {
+            return;
         }
-    }
 
-    if (!found) {
-        printf("No grade record found for this student.\n");
+        unsigned long long inputID;
+        printf("Enter student ID: ");
+        scanf("%llu", &inputID);
+
+        for (int i = 0; i < recordCount; i++) {
+            if (records[i].ID == inputID) {
+                found = 1;
+
+                char *name = "no idea";
+                for (int j = 0; j < userSize; j++) {
+                    if (users[j].ID == inputID) {
+                        name = users[j].username;
+                        break;
+                    }
+                }
+
+                float grade = records[i].grade;
+                char letter;
+
+                if (grade >= 90) letter = 'A';
+                else if (grade >= 85) letter = 'B';
+                else if (grade >= 80) letter = 'C';
+                else if (grade >= 75) letter = 'D';
+                else if (grade >= 70) letter = 'E';
+                else letter = 'F';
+
+                printf("\nStudent: %s\nID: %llu\nGrade: %.2f\nLetter: %c\n",
+                       name, inputID, grade, letter);
+
+                break;
+            }
+        }
+
+        if (!found) {
+            printf("No grade record found for this student.\n");
+        }
     }
 }
 
@@ -291,29 +313,30 @@ void grade()
 {
     int choice;
 
-    printf("Attendance and Grade management\n");
+    do{
+
+    printf("\nAttendance and Grade management\n");
     
     printf("1. Input grades\n");
     printf("2. View all grades\n");
     printf("3. Search student grade\n");
     printf("4. EXIT\n\n");
 
-    printf("Enter your choice: \n");
+    printf("Enter your choice: ");
     scanf("%d", &choice);
 
-    while(choice != 4){
 
         switch(choice)
         {   
             case 1: inputgrade(); break;
             case 2: viewgrade(); break;
             case 3: searchgrade(); break;
-            case 4: printf("EXITING.........\n"); break;
+            case 4: printf("EXITING.........\n"); return;
             default: printf("INVALID CHOICE! Choose again.\n");
 
         }
-    }
-
+    
+            }while(choice!= 4);
 }
 
 
