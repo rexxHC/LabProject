@@ -95,9 +95,10 @@ int loginID(user users[], int userSize, unsigned long long input_id) {
 
 // attendance + grade 
 
-void grade();
+//grade
+void grade(void);
 
-typedef struct {        // only for grade + attendance
+typedef struct {        //for grade + attendance
     unsigned long long ID; 
     float grade;           
     int attendance;        
@@ -120,7 +121,7 @@ void load_gradeFile() {
 
 
     if (!file) {
-        printf("No saved records found. Starting fresh.\n");
+        printf("No saved grade records found. Starting fresh.\n");
         recordCount = 0;
         return;
     }
@@ -131,7 +132,7 @@ void load_gradeFile() {
     fread(records, sizeof(Record), recordCount, file); 
 
     fclose(file);
-    printf("Records loaded successfully.\n");
+    printf("Grade records loaded successfully.\n");
 }
 
 
@@ -141,7 +142,7 @@ void save_gradeFile() {
     
     
     if (!file) {
-        printf("Error opening file for saving.\n");
+        printf("Error opening grade file for saving.\n");
         return;
     }
 
@@ -151,7 +152,7 @@ void save_gradeFile() {
     fwrite(records, sizeof(Record), recordCount, file); 
 
     fclose(file);
-    printf("Records saved successfully.\n");
+    printf("Grade Records saved successfully.\n");
 }
 
 
@@ -315,7 +316,7 @@ void grade()
 
     do{
 
-    printf("\nAttendance and Grade management\n");
+    printf("\nGrade management\n");
     
     printf("1. Input grades\n");
     printf("2. View all grades\n");
@@ -339,8 +340,217 @@ void grade()
             }while(choice!= 4);
 }
 
+////////
 
 
+
+
+//attendance
+
+typedef struct {
+    unsigned long long ID;
+    int daysPresent;
+    int attendanceMarks;   
+} AttendanceRecord;
+
+AttendanceRecord attendanceRecords[100];
+int attendanceCount = 0;
+
+
+void attendance(void);
+
+void load_attendanceFile(void);
+void save_attendanceFile(void);
+void inputattendance(void);
+void viewattendance(void);
+
+
+
+void load_attendanceFile()
+{
+    
+    FILE *file = fopen("records2.dat", "rb"); 
+
+
+    if (!file) {
+        printf("No saved attendance records found. Starting fresh.\n");
+        attendanceCount = 0;
+        return;
+    }
+
+
+
+    fread(&attendanceCount, sizeof(int), 1, file);        
+    fread(attendanceRecords, sizeof(AttendanceRecord), attendanceCount, file); 
+
+    fclose(file);
+    printf("Attendance records loaded successfully.\n");
+
+}
+
+
+void save_attendanceFile()
+{
+
+    FILE *file = fopen("records2.dat", "wb"); 
+    
+    
+    if (!file) {
+        printf("Error opening attendance file for saving.\n");
+        return;
+    }
+
+
+
+    fwrite(&attendanceCount, sizeof(int), 1, file);        
+    fwrite(attendanceRecords, sizeof(AttendanceRecord), attendanceCount, file);  
+
+    fclose(file);
+    printf("Attendance records saved successfully.\n");
+
+}
+
+
+void inputattendance(void)
+{
+
+    unsigned long long id;
+    int days,marks;
+    int n = 1;
+
+    while(1){
+
+        int found = 0;
+
+        printf("Enter 0 to return or any numeric key to continue\n");
+        printf("Choice: ");
+        scanf("%d", &n);
+
+        if (n == 0) {
+            return;
+        }
+
+        printf("Enter student ID: ");
+        scanf("%llu", &id);
+
+        printf("Enter days present: ");
+        scanf("%d", &days);
+
+        if(days < 0) days = 0;
+        if(days > 20) days = 20;
+
+        if(days >= 17) marks = 5;
+        else if(days >= 13) marks = 4;
+        else if(days >= 10) marks = 3;
+        else if(days >= 7)  marks = 2;
+        else if(days >= 1)  marks = 1;
+        else marks = 0;
+
+        found = 0;
+
+      
+        for (int i = 0; i < attendanceCount; i++) {
+
+            if (attendanceRecords[i].ID == id) {
+              
+                attendanceRecords[i].daysPresent = days;
+                attendanceRecords[i].attendanceMarks = marks;
+                
+                found = 1;
+                break;
+            }
+
+        }
+
+       
+        if (!found) {
+            
+            attendanceRecords[attendanceCount].ID = id;
+            attendanceRecords[attendanceCount].daysPresent = days;
+            attendanceRecords[attendanceCount].attendanceMarks = marks;
+            
+            attendanceCount++;
+        }
+
+        
+        save_attendanceFile(); 
+    }
+
+
+}
+
+
+void viewattendance()
+{
+
+    if (attendanceCount == 0) {
+        printf("No attendance found yet.\n");
+        return;
+    }
+
+    printf("\nAll Student Attendance:\n");
+    printf("%s %s %s %s\n", "Name", "ID", "Days", "Marks");
+
+    for (int i = 0; i < attendanceCount; i++) {
+        unsigned long long id = attendanceRecords[i].ID;
+        char *name = "no idea";
+
+       
+        for (int j = 0; j < userSize; j++) {
+            if (users[j].ID == id) {
+                name = users[j].username;
+                break;
+            }
+        }
+
+        
+
+        printf("%s %llu %d %d\n", name, id, attendanceRecords[i].daysPresent, attendanceRecords[i].attendanceMarks);
+    }
+
+
+
+
+}
+
+
+void attendance()
+{
+
+    int choice;
+
+    do{
+
+    printf("\nAttendance management\n");
+    
+    printf("1. Input attendance\n");
+    printf("2. View all attendance\n");
+    
+    printf("3. EXIT\n\n");
+
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
+
+
+        switch(choice)
+        {   
+            case 1: inputattendance(); break;
+            case 2: viewattendance(); break;
+            
+            case 3: printf("EXITING.........\n"); return;
+            default: printf("INVALID CHOICE! Choose again.\n");
+
+        }
+    
+            }while(choice!= 3);
+
+
+}
+
+
+
+
+////////// end ig
 
 
 
@@ -352,6 +562,9 @@ int main() {
     unsigned long long id;
     int loginMenu = 1;
     int programMenu = 0;
+
+    load_gradeFile();       //file loads 1st 
+    load_attendanceFile();
 
     while(loginMenu) {
         int logUser = 0;
@@ -428,7 +641,7 @@ int main() {
 
             switch(nav) {
                 case 1:
-                    // attendance();
+                    attendance();
                     break;
                 case 2:
                    grade();
