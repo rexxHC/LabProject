@@ -1,355 +1,373 @@
-#include <arm/types.h>
 #include <stdio.h>
 #include <string.h>
 
 typedef struct {
-    char *username;
-    long int ID;
+  char *username;
+  char *id_number;
+  char *password;
 } user;
 
 typedef struct {
-    char *admin;
-} Admin;
+  char *admin_name;
+  char *admin_password;
+} admin;
 
-Admin keys[] = {
-    {"RejuanaIslam115"},
-    {"RajeshPalitRJP115"},
-    {"meowLord67"}
-}; //load this from a file figure ts out
+void registerUser(void);
+int login(char *input_name, char *input_password, user users[], admin admins[]);
+void insertName(char *name);
+void insertPassword(char *password);
+void saveUsers(void);
+void loadUsers(void);
+void studentMenu(void);
+void adminMenu(void);
 
-int adminSize = sizeof(keys) / sizeof(keys[0]);
 
-user users[] = {
-    {"AbiraSorowar", 2513491630},
-    {"MstNurAAfsanur", 2532692642},
-    {"AnilBanik", 2534231642},
-    {"RatulBanik", 2533081642},
-    {"ArnobBiswas", 2532531042},
-    {"NehanChowdhury", 2534512642},
-    {"MdNaofilIslamEmon", 2534017642},
-    {"KhandakerAhnafTahmidEnan", 2531312642},
-    {"AnikGhosh", 2534167042},
-    {"KaziMdInjamamulHoque", 2531183642},
-    {"MahbubIntisar", 2533512042},
-    {"AbdullahMohammadJubayer", 2531483042},
-    {"TahsinZamanMashrim", 2531753642},
-    {"MdTahsanMasud", 2534470642},
-    {"KhandakerJannatulMawa", 2531368042},
-    {"JasiyaMohayra", 2533672042},
-    {"TahiyaMohayra", 2533632042},
-    {"MdMarufRabbiMoon", 253192842},
-    {"SyadaNusratNahar", 2531955042},
-    {"AbdullahAlNahian", 2531681642},
-    {"SheikhNahianNaji", 2533163042},
-    {"MdAdnanSiddiqueNeon", 2532222042},
-    {"LamiaMehzadNirbindha", 2531016642},
-    {"AtifUlQuadir", 2533574042},
-    {"SadmanRahatRafi", 2532371042},
-    {"SkRakinulHaque", 2532182642},
-    {"ANSamiullah", 2531751042},
-    {"MymunaSarker", 2531428642},
-    {"AliHasanShadman", 2531451042},
-    {"MashrikaMuntahinSiddiqui", 2531731042},
-    {"TamimSadiqSneho", 2531929642},
-    {"TawfiqueOmarTazwar", 2533259642},
-    {"TarannumBinteMatiur", 2311647643}
+user users[100];
+
+int userSize = 0;
+
+admin admins[] = {
+    {"RejuanaIslam115", "admin123"},  // Added password for testing
+    {"meowLord67", "admin456"}
 };
 
-int userSize = sizeof(users) / sizeof(users[0]);
+int adminSize = sizeof(admins) / sizeof(admins[0]);
 
-int loginUser(user users[], int userSize, char *input_name, Admin keys[], int adminSize) {
-    char end[10] = "exit";
+void registerUser(void) {
 
-    for(int i = 0; i < adminSize; i++){
-        if(strcmp(keys[i].admin, input_name) == 0){
-            return 3;
-        }
-    }
-    
-    if (strcmp(end, input_name) == 0) {
-        return 2;
-    }
+  if(userSize >= 100) {
+    printf("user limit reached\n");
+    return;
+  }
 
-    for (int i = 0; i < userSize; i++) {
-        if (strcmp(users[i].username, input_name) == 0) {
-            return 1;
-        }
-    }
-    return 0;
+  char username[20];
+  printf("enter username: ");
+  scanf("%19s", username);
+
+  char id[10];
+  printf("enter your NSU id number: ");
+  scanf("%9s", id);
+
+  char password_1[50];
+  printf("enter password: ");
+  scanf("%49s", password_1);
+
+  char password_2[50];
+  printf("enter password again: ");
+  scanf("%49s", password_2);
+  
+  if(strcmp(password_1, password_2) == 0) {
+    users[userSize].username = strdup(username);
+    users[userSize].id_number = strdup(id);
+    users[userSize].password = strdup(password_2);
+    userSize++;
+    saveUsers();
+    printf("registry successful!!\n\n\n");
+  } else {
+    printf("passwords do not match!!!!\n\n");
+  }
 }
 
-int loginID(user users[], int userSize, long int input_id) {
-    for (int i = 0; i < userSize; i++) {
-        if (users[i].ID == input_id) {
-            return 1;
+int login(char *input_name, char *input_password, user users[], admin admins[]) {
+
+  for(int i = 0; i < adminSize; i++){
+    if(admins[i].admin_password != NULL && strcmp(admins[i].admin_name, input_name) == 0) {
+      if(strcmp(admins[i].admin_password, input_password) == 0) {
+        return 2;
+      }
+    }
+  }
+
+  for(int i = 0; i < userSize; i++) {
+    if(strcmp(users[i].username, input_name) == 0 || strcmp(users[i].id_number, input_name) == 0) {
+      if(strcmp(users[i].password, input_password) == 0) {
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+void insertName(char *name){
+  printf("enter username / nsu id: ");
+  scanf("%49s", name);
+}
+
+void insertPassword(char *password){
+  printf("enter password: ");
+  scanf("%49s", password);
+}
+
+void saveUsers(void) {
+    FILE *f = fopen("users.txt", "w");
+    if (!f) {
+        printf("error!!\n\n");
+        return;
+    }
+
+    for(int i = 0; i < userSize; i++) {
+          fprintf(f, "%d %s %s %s\n", i, users[i].username, users[i].id_number, users[i].password);
+    }
+        
+    fclose(f);
+}
+
+void loadUsers(void) {
+    FILE *f = fopen("users.txt", "r");
+    if (!f) {
+        return;
+    }
+
+    char uname[50], id[20], pass[50];
+    int i;
+
+    while (userSize < 100 && fscanf(f, "%d %s %s %s", &i, uname, id, pass) == 4) {
+        users[userSize].username  = strdup(uname);
+        users[userSize].id_number = strdup(id);
+        users[userSize].password  = strdup(pass);
+        userSize++;
+    }
+
+    fclose(f);
+}
+
+void studentMenu(void) {
+    int nav = 0;
+    
+    while(nav != 4) {
+        printf("\n Student Main Menu \n");
+        printf("1. student resources\n");
+        printf("2. calculation resources\n");
+        printf("3. miscellaneous\n");
+        printf("4. logout\n");
+        printf("choose an option: ");
+        scanf("%d", &nav);
+
+        switch (nav) {
+            case 1: {
+                int sub = -1;
+                while (sub != 0) {
+                    printf("\n resources menu**\n");
+                    printf("1. notes\n");
+                    printf("2. study materials\n");
+                    printf("0. back\n");
+                    printf("choose an option: ");
+                    scanf("%d", &sub);
+                    
+                    switch (sub) {
+                        case 1:
+                            printf("Showing Notes...\n");
+                            break;
+                        case 2:
+                            printf("Showing Study Materials...\n");
+                            break;
+                        case 0:
+                            printf("returning ...\n");
+                            break;
+                        default:
+                            printf("invalid option.\n");
+                    }
+                }
+                break;
+            }
+            
+            case 2: {
+                int sub = -1;
+                while (sub != 0) {
+                    printf("\n calculation menu \n");
+                    printf("1. calculator\n");
+                    printf("2. converter\n");
+                    printf("0. back\n");
+                    printf("choose an option: ");
+                    scanf("%d", &sub);
+                    
+                    switch (sub) {
+                        case 1:
+                            printf("Calculator selected...\n");
+                            break;
+                        case 2:
+                            printf("Converter selected...\n");
+                            break;
+                        case 0:
+                            printf("returning ...\n");
+                            break;
+                        default:
+                            printf("invalid option.\n");
+                    }
+                }
+                break;
+            }
+            
+            case 3: {
+                int sub = -1;
+                while (sub != 0) {
+                    printf("\n**Miscellaneous Menu**\n");
+                    printf("1. Random Facts\n");
+                    printf("2. Jokes\n");
+                    printf("0. Back to Main Menu\n");
+                    printf("Choose an option: ");
+                    scanf("%d", &sub);
+                    
+                    switch (sub) {
+                        case 1:
+                            printf("Random Facts...\n");
+                            break;
+                        case 2:
+                            printf("Jokes...\n");
+                            break;
+                        case 0:
+                            printf("Returning to Main Menu...\n");
+                            break;
+                        default:
+                            printf("Invalid option.\n");
+                    }
+                }
+                break;
+            }
+            
+            case 4:
+                printf("Logging out...\n\n");
+                break;
+                
+            default:
+                printf("Invalid option. Please choose again.\n\n");
         }
     }
-    return 0;
+}
+
+void adminMenu(void) {
+    int nav = 0;
+    
+    while(nav != 3) {
+        printf("\n admin menu \n\n");
+        printf("1. attendance\n");
+        printf("2. student files\n");
+        printf("3. logout\n");
+        printf("choose an option: ");
+        scanf("%d", &nav);
+
+        switch (nav) {
+            case 1: {
+                int sub = -1;
+                while (sub != 0) {
+                    printf("\n**attendance menu**\n\n");
+                    printf("1. view attendance\n");
+                    printf("2. mark attendance\n");
+                    printf("0. back\n");
+                    printf("Choose an option: ");
+                    scanf("%d", &sub);
+                    
+                    switch (sub) {
+                        case 1:
+                            printf("Viewing attendance records...\n");
+                            break;
+                        case 2:
+                            printf("Marking attendance...\n");
+                            break;
+                        case 0:
+                            printf("Returning to Admin Main Menu...\n");
+                            break;
+                        default:
+                            printf("Invalid option.\n");
+                    }
+                }
+                break;
+            }
+            
+            case 2: {
+                int sub = -1;
+                while (sub != 0) {
+                    printf("\n student files \n\n");
+                    printf("1. view Files\n");
+                    printf("0. Back to Main Menu\n");
+                    printf("Choose an option: ");
+                    scanf("%d", &sub);
+                    
+                    switch (sub) {
+                        case 1:
+                            printf("viewing student files...\n");
+                            break;
+                        case 0: 
+                            printf("returning to admin main menu...\n");
+                            break;
+                        default:
+                            printf("invalid option.\n");
+                    }
+                }
+                break;
+            }
+            
+                
+            case 3:
+                printf("logging out...\n\n");
+                break;
+                
+            default:
+                printf("invalid option\n\n");
+        }
+    }
 }
 
 int main() {
-    char name[100];
-    long int id;
-    int loginMenu = 1; // Controls the primary login loop
-    int programMenu = 0; // Controls which main menu (Student: 1, Admin: 2, None: 0) is active
+  
+  loadUsers();  
+  
+  int loginMenu = 0;
+  while(loginMenu != 3){
+    printf("\n RDSv2 \n\n");
+    printf("1. register\n2. login\n3. terminate\n");
+    printf("→ ");
+    scanf("%d", &loginMenu);
+    printf("\n");
 
-    while (loginMenu == 1) {
-        int logUser = 0;
-        int logID = 0;
+    char username[50];
+    char password[50];  
+    int logged_in = 0;
+  
+    switch(loginMenu) {
+      case 1:
+        registerUser();
+        break;
 
-        // --- 1. Login Authentication Loop (Username/Admin Check) ---
-        // This loop continues until a valid username, admin key, or 'exit' is entered.
-        while (logUser == 0) {
-            printf("enter username: ");
-            scanf("%99s", name);
+      case 2: {
+        int count = 0;
 
-            logUser = loginUser(users, userSize, name, keys, adminSize);
+        while(logged_in == 0 && count < 3) {  // Fixed: changed <= to <
+          insertName(username);
+          insertPassword(password);
+          logged_in = login(username, password, users, admins);
 
-            if (logUser == 0) {
-                printf("invalid username\n\n");
-            }
-
-            int try = 0;
-
-            // Handle successful Student Login
-            if (logUser == 1) {
-                while (logID == 0) {
-                    printf("enter ID: ");
-                    scanf("%ld", &id);
-
-                    logID = loginID(users, userSize, id);
-
-                    if (logID == 0) {
-                        printf("invalid ID\n\n");
-                        try++;
-                    }
-
-                    if (try > 3) {
-                        printf("too many tries \n");
-                        loginMenu = 0; // Terminate entirely
-                        break;
-                    }
-                }
-
-                if (logID == 1) {
-                    programMenu = 1; // Student Menu
-                    printf("Login successful!!\n\n");
-                    // We need to exit the inner logUser loop immediately
-                    logUser = -1; 
-                }
-            }
-
-            // Handle 'exit' command
-            if (logUser == 2) {
-                loginMenu = 0; // Terminate entirely
-                break;
-            }
-
-            // Handle successful Admin Login (FIX 1: Go straight to admin menu)
-            if (logUser == 3){
-                printf("admin perms granted \n\n");
-                programMenu = 2; // Admin Menu
-                // We need to exit the inner logUser loop immediately
-                logUser = -1;
-            }
-        }
-        
-        // If we broke out due to 'exit' or too many ID tries, jump to end of outer loop
-        if (loginMenu == 0) {
-            break;
+          if(logged_in == 0) {
+            printf("invalid login attempt\n\n");
+            count++;
+          }
         }
 
-        // --- 2. Program Menu Loop (Student: programMenu == 1) ---
-        // Once the user logs in, they enter this loop.
-        while (programMenu == 1) {
-            int nav = 0;
-            printf("\nMain Menu:\n");
-            printf("1. Student Resources\n");
-            printf("2. Calculation Resources\n");
-            printf("3. Miscellaneous\n");
-            printf("4. Logout\n");
-            printf("Choose an option: ");
-            scanf("%d", &nav);
-
-            switch (nav) {
-                case 1: {
-                    int sub = -1;
-                    while (sub != 0) {
-                        printf("\n**Student Resources Menu**\n");
-                        printf("1. Notes\n");
-                        printf("2. Study Materials\n");
-                        printf("0. Back to Main Menu\n");
-                        printf("Choose an option: ");
-                        scanf("%d", &sub);
-                        
-                        switch (sub) {
-                            case 1:
-                                printf("Showing Notes...\n");
-                                break;
-                            case 2:
-                                printf("Showing Study Materials...\n");
-                                break;
-                            case 0:
-                                printf("Returning to Main Menu...\n");
-                                break;
-                            default:
-                                printf("Invalid option.\n");
-                        }
-                    }
-                    break;
-                }
-                
-                case 2: {
-                    int sub = -1;
-                    while (sub != 0) {
-                        printf("\n**Calculation Resources Menu**\n");
-                        printf("1. Calculator\n");
-                        printf("2. Converter\n");
-                        printf("0. Back to Main Menu\n");
-                        printf("Choose an option: ");
-                        scanf("%d", &sub);
-                        
-                        switch (sub) {
-                            case 1:
-                                printf("Calculator selected...\n");
-                                break;
-                            case 2:
-                                printf("Converter selected...\n");
-                                break;
-                            case 0:
-                                printf("Returning to Main Menu...\n");
-                                break;
-                            default:
-                                printf("Invalid option.\n");
-                        }
-                    }
-                    break;
-                }
-                
-                case 3: {
-                    int sub = -1;
-                    while (sub != 0) {
-                        printf("\n**Miscellaneous Menu**\n");
-                        printf("1. Random Facts\n");
-                        printf("2. Jokes\n");
-                        printf("0. Back to Main Menu\n");
-                        printf("Choose an option: ");
-                        scanf("%d", &sub);
-                        
-                        switch (sub) {
-                            case 1:
-                                printf("Random Facts...\n");
-                                break;
-                            case 2:
-                                printf("Jokes...\n");
-                                break;
-                            case 0:
-                                printf("Returning to Main Menu...\n");
-                                break;
-                            default:
-                                printf("Invalid option.\n");
-                        }
-                    }
-                    break;
-                }
-                
-                case 4:
-                    printf("Logging out from Student Menu.\n\n");
-                    programMenu = 0; // Exits this loop and goes back to loginMenu loop
-                    break;
-                    
-                default:
-                    printf("Invalid option. Please choose again.\n\n");
-            }
+        if(count >= 3 && logged_in == 0) {
+          printf("too many failed attempts\n\n");
         }
-        
-        // --- 3. Program Menu Loop (Admin: programMenu == 2) ---
-        // Once the admin logs in, they enter this loop.
-        while (programMenu == 2) {
-            int nav = 0;
-            printf("\nAdmin Main Menu:\n");
-            printf("1. Attendance\n");
-            printf("2. Student files\n");
-            printf("3. Add participants\n");
-            printf("4. Logout\n");
-            printf("Choose an option: ");
-            scanf("%d", &nav);
 
-            switch (nav) {
-                case 1: {
-                    // --- Attendance Sub-menu ---
-                    int sub = -1;
-                    while (sub != 0) {
-                        printf("\n**Attendance Menu**\n");
-                        printf("1. View Attendance\n");
-                        printf("2. Mark Attendance\n");
-                        printf("0. Back to Main Menu\n");
-                        printf("Choose an option: ");
-                        scanf("%d", &sub);
-                        
-                        switch (sub) {
-                            case 1:
-                                printf("Viewing attendance records...\n");
-                                break;
-                            case 2:
-                                printf("Marking attendance...\n");
-                                break;
-                            case 0:
-                                printf("Returning to Admin Main Menu...\n");
-                                break;
-                            default:
-                                printf("Invalid option.\n");
-                        }
-                    }
-                    break;
-                }
-                
-                case 2: {
-                    // --- Student Files Sub-menu ---
-                    int sub = -1;
-                    while (sub != 0) {
-                        printf("\n**Student Files Menu**\n");
-                        printf("1. View Files\n");
-                        printf("2. Edit Files\n");
-                        printf("0. Back to Main Menu\n");
-                        printf("Choose an option: ");
-                        scanf("%d", &sub);
-                        
-                        switch (sub) {
-                            case 1:
-                                printf("Viewing student files...\n");
-                                break;
-                            case 2:
-                                printf("Editing student files...\n");
-                                break;
-                            case 0:
-                                printf("Returning to Admin Main Menu...\n");
-                                break;
-                            default:
-                                printf("Invalid option.\n");
-                        }
-                    }
-                    break;
-                }
-                
-                case 3: {
-                    // --- Add Participants Action (No Sub-menu needed) ---
-                    printf("\nAdding new participants...\n");
-                    break;
-                }
-                
-                case 4:
-                    printf("Logging out from Admin Menu.\n\n");
-                    programMenu = 0; // FIX 2: Exits this loop, but the outer 'while (loginMenu == 1)' loop restarts the process.
-                    break;
-                    
-                default:
-                    printf("Invalid option. Please choose again.\n\n");
-            }
+        if(logged_in == 1) {
+          printf("student log in success\n\n");
+          studentMenu(); 
         }
-        // Since loginMenu is still 1 here, the loop restarts, prompting for username again.
+
+        if(logged_in == 2) {
+          printf("admin login successful\n\n");
+          adminMenu();  
+        }
+        break;
+      }
+
+      case 3:
+        printf("terminating program.....\n\n");
+        break;
+
+      default:
+        printf("invalid input!\n\n");
+        break;
     }
-    
-    printf("Program terminated.\n");
-    return 0;
+  }
 }
+
