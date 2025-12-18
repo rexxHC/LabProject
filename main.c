@@ -1,10 +1,17 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <math.h>
 
+#define pi 3.141592653589793
+#define max 100
+
+// --- STRUCTS ---
 typedef struct {
   char *username;
   char *id_number;
   char *password;
+  int attendance;
 } user;
 
 typedef struct {
@@ -12,30 +19,53 @@ typedef struct {
   char *admin_password;
 } admin;
 
-void registerUser(void);
-int login(char *input_name, char *input_password, user users[], admin admins[]);
-void insertName(char *name);
-void insertPassword(char *password);
-void saveUsers(void);
-void loadUsers(void);
-void studentMenu(void);
-void adminMenu(void);
+typedef struct {
+    char title[max];
+    char author[max];
+} book;
 
+typedef struct {
+    char course_name[max];
+    char faculty[max];
+} course;
 
+// --- GLOBAL VARIABLES ---
 user users[100];
-
 int userSize = 0;
 
 admin admins[] = {
-    {"RejuanaIslam115", "admin123"},  // Added password for testing
+    {"RejuanaIslam115", "admin123"},
     {"meowLord67", "admin456"}
 };
 
 int adminSize = sizeof(admins) / sizeof(admins[0]);
 
-void registerUser(void) {
+// --- PROTOTYPES ---
+void clearBuffer();
+void registerUser(void);
+int login(char *input_name, char *input_password, user users[], admin admins[], int *userIndex, int *adminIndex);
+void insertName(char *name);
+void insertPassword(char *password);
+void saveUsers(void);
+void loadUsers(void);
+void studentMenu(int userIndex);
+void adminMenu(void);
+void logBooks(int userIndex);
+void logCourses(int userIndex);
+void viewBooks(int userIndex);
+void viewCourses(int userIndex);
+void calculator();
 
-  if(userSize >= 100) {
+
+// --- HELPER FUNCTIONS ---
+
+void clearBuffer() {
+  int c;
+  while((c = getchar()) != '\n' && c != EOF);
+}
+
+void registerUser(void) {
+  if(userSize >= max) {
     printf("user limit reached\n");
     return;
   }
@@ -47,11 +77,15 @@ void registerUser(void) {
   char id[10];
   printf("enter your NSU id number: ");
   scanf("%9s", id);
-
+  
+  clearBuffer();
+        
   char password_1[50];
   printf("enter password: ");
   scanf("%49s", password_1);
 
+  clearBuffer();
+  
   char password_2[50];
   printf("enter password again: ");
   scanf("%49s", password_2);
@@ -68,11 +102,11 @@ void registerUser(void) {
   }
 }
 
-int login(char *input_name, char *input_password, user users[], admin admins[]) {
-
+int login(char *input_name, char *input_password, user users[], admin admins[], int *userIndex, int *adminIndex) {
   for(int i = 0; i < adminSize; i++){
     if(admins[i].admin_password != NULL && strcmp(admins[i].admin_name, input_name) == 0) {
       if(strcmp(admins[i].admin_password, input_password) == 0) {
+        *adminIndex = i;
         return 2;
       }
     }
@@ -81,20 +115,22 @@ int login(char *input_name, char *input_password, user users[], admin admins[]) 
   for(int i = 0; i < userSize; i++) {
     if(strcmp(users[i].username, input_name) == 0 || strcmp(users[i].id_number, input_name) == 0) {
       if(strcmp(users[i].password, input_password) == 0) {
+        *userIndex = i;
         return 1;
       }
     }
   }
-
   return 0;
 }
 
 void insertName(char *name){
+  clearBuffer();
   printf("enter username / nsu id: ");
   scanf("%49s", name);
 }
 
 void insertPassword(char *password){
+  clearBuffer();
   printf("enter password: ");
   scanf("%49s", password);
 }
@@ -105,62 +141,313 @@ void saveUsers(void) {
         printf("error!!\n\n");
         return;
     }
-
     for(int i = 0; i < userSize; i++) {
           fprintf(f, "%d %s %s %s\n", i, users[i].username, users[i].id_number, users[i].password);
     }
-        
     fclose(f);
 }
 
 void loadUsers(void) {
     FILE *f = fopen("users.txt", "r");
-    if (!f) {
-        return;
-    }
+    if (!f) return;
 
     char uname[50], id[20], pass[50];
     int i;
 
-    while (userSize < 100 && fscanf(f, "%d %s %s %s", &i, uname, id, pass) == 4) {
+    while (userSize < max && fscanf(f, "%d %s %s %s", &i, uname, id, pass) == 4) {
         users[userSize].username  = strdup(uname);
         users[userSize].id_number = strdup(id);
         users[userSize].password  = strdup(pass);
         userSize++;
     }
-
     fclose(f);
 }
 
-void studentMenu(void) {
+// --- LOGGING FUNCTIONS ---
+
+void logBooks(int userIndex) {
+    int n;
+    printf("enter number of books: ");
+    scanf("%d", &n);
+    clearBuffer(); 
+
+    book *library = (book *)malloc(n * sizeof(book));
+    if(library == NULL) {
+        printf("error\n");
+        return;
+    }
+
+    for(int i = 0; i < n; i++) {
+        char temp[100];
+        
+        printf("\n--- Book %d ---\n", i+1);
+        printf("enter title: ");
+        if(fgets(temp, 100, stdin)) {
+            temp[strcspn(temp, "\n")] = 0;
+            strcpy(library[i].title, temp);
+        }
+
+        printf("enter author: ");
+        if(fgets(temp, max, stdin)) {
+            temp[strcspn(temp, "\n")] = 0;
+            strcpy(library[i].author, temp);
+        }
+    }
+
+    char filename[max];
+    strcpy(filename, users[userIndex].id_number);
+    strcat(filename, "_books.txt"); 
+
+    FILE *lib = fopen(filename, "w");
+    if (lib != NULL) {
+        for (int i = 0; i < n; i++) {
+            fprintf(lib, "title: %s | author: %s\n", library[i].title, library[i].author);
+        }
+        fclose(lib);
+        printf("\nData written to %s\n", filename);
+    } else {
+        printf("\nerror opening file!\n");
+    }
+
+    free(library);
+}
+
+void logCourses(int userIndex) {
+    int n;
+    printf("enter number of courses: ");
+    scanf("%d", &n);
+    clearBuffer(); 
+
+    course *courseList = (course *)malloc(n * sizeof(course));
+    if(courseList == NULL) {
+        printf("Memory allocation error\n");
+        return;
+    }
+
+    for(int i = 0; i < n; i++) {
+        char temp[max];
+        
+        printf("\n--- Course %d ---\n", i+1);
+        printf("enter course name (e.g. CSE115): ");
+        if(fgets(temp, 100, stdin)) {
+            temp[strcspn(temp, "\n")] = 0;
+            strcpy(courseList[i].course_name, temp);
+        }
+
+        printf("enter faculty initial: ");
+        if(fgets(temp, max, stdin)) {
+            temp[strcspn(temp, "\n")] = 0;
+            strcpy(courseList[i].faculty, temp);
+        }
+    }
+
+    char filename[max];
+    strcpy(filename, users[userIndex].id_number);
+    strcat(filename, "_courses.txt"); 
+
+    FILE *f = fopen(filename, "w");
+    if (f != NULL) {
+        for (int i = 0; i < n; i++) {
+            fprintf(f, "course: %s | faculty: %s\n", courseList[i].course_name, courseList[i].faculty);
+        }
+        fclose(f);
+        printf("\nData written to %s\n", filename);
+    } else {
+        printf("\nError opening file!\n");
+    }
+
+    free(courseList);
+}
+
+//Viewing functions
+void viewBooks(int userIndex) {
+    char bookFile[max];
+    strcpy(bookFile, users[userIndex].id_number);
+    strcat(bookFile, "_books.txt");
+
+    FILE *view = fopen(bookFile,"r");
+    if(view == NULL) {
+        printf("no books logged\n");
+        return;
+    } else {
+        char ch;
+        while((ch =fgetc(view)) != EOF) {
+            printf("%c",ch);
+        }
+    }
+
+    fclose(view);
+}
+
+void viewCourses(int userIndex) {
+    char courseFile[max];
+    strcpy(courseFile, users[userIndex].id_number);
+    strcat(courseFile, "_courses.txt");
+
+    FILE *view = fopen(courseFile,"r");
+    if(view == NULL) {
+        printf("no courses logged\n");
+        return;
+    } else {
+        char ch;
+        while((ch = fgetc(view)) != EOF) {
+            printf("%c",ch);
+        }
+    }
+
+    fclose(view);
+}
+
+
+// --- CALCULATOR ---
+void calculator() {
+    int choice = 0;
+
+    while (choice != 3) {
+        printf("\n----------------------------------\n");
+        printf("Press 1 to perform two number calculations: \n");
+        printf("Press 2 to perform function operations: \n");
+        printf("Press 3 to Exit\n");
+        printf("→ ");
+
+        if (scanf("%d", &choice) != 1) {
+            printf("Invalid input. Please enter a number.\n");
+            clearBuffer();
+            continue;
+        }
+
+        if (choice == 3) {
+            printf("Exiting program.\n");
+            break;
+        }
+
+        if (choice == 1) {
+            float num1, num2; 
+            char op;
+
+            printf("Enter your first number: ");
+            scanf("%f", &num1); // Changed %d to %f
+
+            printf("Enter your second number: ");
+            scanf("%f", &num2); // Changed %d to %f
+
+            printf("Choose your operator (+, -, *, /): ");
+            scanf(" %c", &op);
+
+            switch (op) {
+                case '+':
+                    printf("%.2f + %.2f = %.2f\n", num1, num2, num1 + num2);
+                    break;
+
+                case '-':
+                    printf("%.2f - %.2f = %.2f\n", num1, num2, num1 - num2);
+                    break;
+
+                case '*':
+                    printf("%.2f * %.2f = %.2f\n", num1, num2, num1 * num2);
+                    break;
+
+                case '/':
+                    if (num2 == 0) {
+                        printf("error!! divisor cannot be zero\n");
+                    } else {
+                        printf("%.2f / %.2f = %.2f\n", num1, num2, num1 / num2);
+                    }
+                    break;
+                
+                default:
+                    printf("invalid operator\n");
+            }
+        } 
+        else if (choice == 2) {
+            float x;
+            float x_in_radians;
+            char opar;
+            float result;
+
+            printf("Enter angle in degrees: ");
+            scanf("%f", &x);
+            
+            printf("choose function: \n");
+            printf("sinx (press s)\n");
+            printf("cosx (press c)\n");
+            printf("tanx (press t)\n");
+            printf("→ ");
+            scanf(" %c", &opar);
+
+            x_in_radians = x * (pi / 180.0);
+
+            switch (opar) {
+                case 's':
+                    result = sin(x_in_radians);
+                    printf("Result: %f\n", result);
+                    break;
+
+                case 'c':
+                    result = cos(x_in_radians);
+                    printf("Result: %f\n", result);
+                    break;
+
+                case 't':
+                    result = tan(x_in_radians);
+                    printf("Result: %f\n", result);
+                    break;
+
+                default:
+                    printf("Invalid trigonometric operation.\n");
+            }
+        } 
+        else {
+            printf("Invalid choice. Please enter 1, 2, or 3.\n");
+        }
+    }
+}
+
+// --- MENUS ---
+
+void studentMenu(int userIndex) {
     int nav = 0;
     
     while(nav != 4) {
         printf("\n Student Main Menu \n");
         printf("1. student resources\n");
         printf("2. calculation resources\n");
-        printf("3. miscellaneous\n");
-        printf("4. logout\n");
-        printf("choose an option: ");
+        printf("3. logout\n");
+
+        printf("→ ");
         scanf("%d", &nav);
 
+        clearBuffer();
+            
         switch (nav) {
             case 1: {
                 int sub = -1;
                 while (sub != 0) {
                     printf("\n resources menu**\n");
-                    printf("1. notes\n");
-                    printf("2. study materials\n");
+                    printf("1. log books\n");
+                    printf("2. log courses\n");
+                    printf("3. view books\n");
+                    printf("4. view courses\n");
                     printf("0. back\n");
-                    printf("choose an option: ");
+                    printf("→ ");
                     scanf("%d", &sub);
                     
                     switch (sub) {
                         case 1:
-                            printf("Showing Notes...\n");
+                            printf("book logger...\n");
+                            logBooks(userIndex);
                             break;
                         case 2:
-                            printf("Showing Study Materials...\n");
+                            printf("course logger...\n");
+                            logCourses(userIndex);
+                            break;
+                        case 3:
+                            printf("view books\n");
+                            viewBooks(userIndex);
+                            break;
+                        case 4:
+                            printf("view courses...\n");
+                            viewCourses(userIndex);
                             break;
                         case 0:
                             printf("returning ...\n");
@@ -173,62 +460,37 @@ void studentMenu(void) {
             }
             
             case 2: {
-                int sub = -1;
-                while (sub != 0) {
-                    printf("\n calculation menu \n");
+                 int sub = -1;
+                 while (sub != 0) {
+                    printf("\n calculations menu**\n");
                     printf("1. calculator\n");
                     printf("2. converter\n");
                     printf("0. back\n");
-                    printf("choose an option: ");
+                    printf("→ ");
                     scanf("%d", &sub);
                     
                     switch (sub) {
                         case 1:
-                            printf("Calculator selected...\n");
+                            printf("calculator\n");
+                            calculator();
                             break;
                         case 2:
-                            printf("Converter selected...\n");
+                            printf("converter\n");
                             break;
                         case 0:
-                            printf("returning ...\n");
+                            printf("returning\n");
                             break;
                         default:
                             printf("invalid option.\n");
                     }
-                }
-                break;
+                 }
+                 break;
+
             }
             
-            case 3: {
-                int sub = -1;
-                while (sub != 0) {
-                    printf("\n**Miscellaneous Menu**\n");
-                    printf("1. Random Facts\n");
-                    printf("2. Jokes\n");
-                    printf("0. Back to Main Menu\n");
-                    printf("Choose an option: ");
-                    scanf("%d", &sub);
-                    
-                    switch (sub) {
-                        case 1:
-                            printf("Random Facts...\n");
-                            break;
-                        case 2:
-                            printf("Jokes...\n");
-                            break;
-                        case 0:
-                            printf("Returning to Main Menu...\n");
-                            break;
-                        default:
-                            printf("Invalid option.\n");
-                    }
-                }
-                break;
-            }
-            
-            case 4:
+            case 3:
                 printf("Logging out...\n\n");
-                break;
+                return; 
                 
             default:
                 printf("Invalid option. Please choose again.\n\n");
@@ -238,77 +500,17 @@ void studentMenu(void) {
 
 void adminMenu(void) {
     int nav = 0;
-    
     while(nav != 3) {
         printf("\n admin menu \n\n");
-        printf("1. attendance\n");
-        printf("2. student files\n");
-        printf("3. logout\n");
-        printf("choose an option: ");
+        printf("1. attendance\n2. logout\n");
         scanf("%d", &nav);
-
-        switch (nav) {
-            case 1: {
-                int sub = -1;
-                while (sub != 0) {
-                    printf("\n**attendance menu**\n\n");
-                    printf("1. view attendance\n");
-                    printf("2. mark attendance\n");
-                    printf("0. back\n");
-                    printf("Choose an option: ");
-                    scanf("%d", &sub);
-                    
-                    switch (sub) {
-                        case 1:
-                            printf("Viewing attendance records...\n");
-                            break;
-                        case 2:
-                            printf("Marking attendance...\n");
-                            break;
-                        case 0:
-                            printf("Returning to Admin Main Menu...\n");
-                            break;
-                        default:
-                            printf("Invalid option.\n");
-                    }
-                }
-                break;
-            }
-            
-            case 2: {
-                int sub = -1;
-                while (sub != 0) {
-                    printf("\n student files \n\n");
-                    printf("1. view Files\n");
-                    printf("0. Back to Main Menu\n");
-                    printf("Choose an option: ");
-                    scanf("%d", &sub);
-                    
-                    switch (sub) {
-                        case 1:
-                            printf("viewing student files...\n");
-                            break;
-                        case 0: 
-                            printf("returning to admin main menu...\n");
-                            break;
-                        default:
-                            printf("invalid option.\n");
-                    }
-                }
-                break;
-            }
-            
-                
-            case 3:
-                printf("logging out...\n\n");
-                break;
-                
-            default:
-                printf("invalid option\n\n");
-        }
+        clearBuffer();
+        
+        if(nav == 2) return;
     }
 }
 
+// --- MAIN ---
 int main() {
   
   loadUsers();  
@@ -318,7 +520,10 @@ int main() {
     printf("\n RDSv2 \n\n");
     printf("1. register\n2. login\n3. terminate\n");
     printf("→ ");
+    
     scanf("%d", &loginMenu);
+    clearBuffer();
+    
     printf("\n");
 
     char username[50];
@@ -332,11 +537,13 @@ int main() {
 
       case 2: {
         int count = 0;
+        int currentUser = -1;
+        int currentAdmin = -1;
 
-        while(logged_in == 0 && count < 3) {  // Fixed: changed <= to <
+        while(logged_in == 0 && count < 3) {
           insertName(username);
           insertPassword(password);
-          logged_in = login(username, password, users, admins);
+          logged_in = login(username, password, users, admins, &currentUser, &currentAdmin);
 
           if(logged_in == 0) {
             printf("invalid login attempt\n\n");
@@ -349,12 +556,12 @@ int main() {
         }
 
         if(logged_in == 1) {
-          printf("student log in success\n\n");
-          studentMenu(); 
+          printf("\n\nstudent login success\n\nlogged in as [%s]\n\n", users[currentUser].username);
+          studentMenu(currentUser); 
         }
 
         if(logged_in == 2) {
-          printf("admin login successful\n\n");
+          printf("admin login success\nlogged in as %s\n\n", admins[currentAdmin].admin_name);
           adminMenu();  
         }
         break;
@@ -369,5 +576,5 @@ int main() {
         break;
     }
   }
+  return 0;
 }
-
