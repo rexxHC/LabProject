@@ -61,6 +61,7 @@ void viewBooks(int userIndex);
 void viewCourses(int userIndex);
 void viewAttendance(int userIndex);
 void calculator();
+void converter();
 void adminMenu(int adminIndex, user users[]);
 
 //minor functions
@@ -113,11 +114,11 @@ void registerUser(void) {
 
   char pass1[icap];
   printf("enter password: ");
-  scanf("%s", pass1);
+  scanf("%19s", pass1);
 
   char pass2[icap];
   printf("enter password again: ");
-  scanf("%s", pass2);
+  scanf("%19s", pass2);
 
   if(strcmp(pass1, pass2) == 0) { //strcmp() returns 0 if pass1 and pass2 are identical
     users[userSize].username = strdup(uname);
@@ -347,7 +348,7 @@ void viewCourses(int userIndex) {
     return;
   } else {
     char ch;
-    while((ch = fgetc(view) != EOF)) {
+    while((ch = fgetc(view)) != EOF) {
       printf("%c", ch);
     }
   }
@@ -458,6 +459,91 @@ void calculator() {
   }
 }
 
+void converter() {
+  int choice = 0;
+  float input, result;
+
+  while(choice != 7) {
+    printf("\n--unit converter--\n");
+    printf("1. celsius to fahrenheit\n");
+    printf("2. fahrenheit to celsius\n");
+    printf("3. pounds to kilograms\n");
+    printf("4. kilograms to pounds\n");
+    printf("5. feet to metre\n");
+    printf("6. metre to feet\n");
+    printf("7. back\n");
+
+    printf("→ ");
+    scanf("%d", &choice);
+    clearBuffer();
+
+    if(choice == 7) {
+      printf("returning...\n");
+      break;
+    }
+
+    if(choice < 1 || choice > 7) {
+      printf("invalid choice\n");
+      continue;
+    }
+
+    printf("enter value: ");
+    scanf("%f", &input);
+    clearBuffer(); // clears buffer after reading float
+
+    switch(choice) {
+      case 1:
+        result = (input * 9.0 / 5.0) + 32.0;
+        printf("converted: %.2f fahrenheit\n", result);
+        break;
+
+      case 2:
+        result = (input - 32.0) * 5.0 / 9.0;
+        printf("converted: %.2f celsius\n", result);
+        break;
+
+      case 3:
+        if(input < 0) {
+          printf("error: weight cannot be negative\n");
+        } else {
+          result = input * 0.453592;
+          printf("converted: %.2f kilograms\n", result);
+        }
+        break;
+
+      case 4:
+        if(input < 0) {
+          printf("error: weight cannot be negative\n");
+        } else {
+          result = input * 2.20462;
+          printf("converted: %.2f pounds\n", result);
+        }
+        break;
+
+      case 5:
+        if(input < 0) {
+          printf("error: length cannot be negative\n");
+        } else {
+          result = input * 0.3048;
+          printf("converted: %.2f metre\n", result);
+        }
+        break;
+
+      case 6:
+        if(input < 0) {
+          printf("error: length cannot be negative\n");
+        } else {
+          result = input * 3.28084;
+          printf("converted: %.2f feet\n", result);
+        }
+        break;
+      
+      default:
+        printf("error\n");
+    }
+  }
+}
+
 //menu functions
 void studentMenu(int userIndex) {
   int nav = 0;
@@ -534,6 +620,7 @@ void studentMenu(int userIndex) {
                 break;
               case 2:
                 printf("--converter--\n");
+                converter();
                 break;
               case 0:
                 printf("returning...\n");
